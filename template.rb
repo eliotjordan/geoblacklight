@@ -6,7 +6,7 @@ if ENV["BRANCH"]
 else
   gem "geoblacklight", "~> 4.0"
 end
-gem "sprockets", "< 4.0" # Use sprockets less than 4.0, let webpacker users set this up themselves
+# gem "sprockets", "< 4.0" # Use sprockets less than 4.0, let webpacker users set this up themselves
 
 run "bundle install"
 
