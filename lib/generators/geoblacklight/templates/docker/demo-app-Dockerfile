@@ -19,18 +19,18 @@ WORKDIR /rails
 COPY Gemfile .
 RUN bundle install
 COPY package.json .
-RUN yarn install
+RUN yarn install --modules-folder /usr/local/node_modules
 
 FROM base AS app
 
-# Ensure directory is clean
-RUN find . ! -name 'node_modules' -maxdepth 1  -type f,d  -exec rm -f {} +
+# Ensure directory is clean except for node_modules
+RUN mv node_modules /. && rm -rf * && mv /node_modules .
 
 # Add application code
 COPY . .
 
 RUN bundle install
-RUN yarn install
+RUN yarn install --modules-folder /usr/local/node_modules
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

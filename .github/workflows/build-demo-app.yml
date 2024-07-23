@@ -38,10 +38,10 @@ jobs:
         run: BRANCH=${{ env.BRANCH }} rails new build -m template.rb -a propshaft
 
       - name: Copy Dockerfile
-        run: cp lib/generators/geoblacklight/templates/docker/Dockerfile build/.
+        run: cp lib/generators/geoblacklight/templates/docker/demo-app-Dockerfile build/Dockerfile
 
       - name: Copy compose.yml
-        run: cp lib/generators/geoblacklight/templates/docker/compose.yml build/.
+        run: cp lib/generators/geoblacklight/templates/docker/demo-app-compose.yml build/compose.yml
 
       - name: Replace main image tag with pr tag
         if: github.ref_name != 'main'

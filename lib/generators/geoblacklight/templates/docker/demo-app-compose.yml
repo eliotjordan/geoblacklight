@@ -13,7 +13,13 @@ services:
       - solr
     command: bash -c "until bundle exec rake geoblacklight:index:seed[:remote]; do :; done && bundle exec rake db:prepare && bundle exec rails server -b 0.0.0.0"
   solr:
-    image: "solr:9"
+    image: "solr:latest"
     volumes:
-      - "./solr/conf:/blacklight-core/conf"
-    command: "solr-precreate blacklight-core /blacklight-core"
+      - "./solr/conf:/opt/solr/conf"
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr-precreate
+      - blacklight-core
+      - /opt/solr/conf
+      - "-Xms256m"
+      - "-Xmx512m"
