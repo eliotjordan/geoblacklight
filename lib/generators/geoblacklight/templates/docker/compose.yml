@@ -1,0 +1,19 @@
+services:
+  app:
+    image: ghcr.io/geoblacklight/geoblacklight:main
+    # build: . # Use to build from local code
+    ports:
+      - "3000:3000"
+    links:
+      - "solr:solr"
+    environment:
+      SOLR_URL: "http://solr:8983/solr/blacklight-core"
+      RAILS_DEVELOPMENT_HOSTS: ".githubpreview.dev,.preview.app.github.dev,.app.github.dev,.csb.app"
+    depends_on:
+      - solr
+    command: bash -c "until bundle exec rake geoblacklight:index:seed[:remote]; do :; done && bundle exec rake db:prepare && bundle exec rails server -b 0.0.0.0"
+  solr:
+    image: "solr:9"
+    volumes:
+      - "./solr/conf:/blacklight-core/conf"
+    command: "solr-precreate blacklight-core /blacklight-core"
