@@ -3,6 +3,7 @@ services:
     build:
         context: .
         dockerfile: Dockerfile
-    command: sleep infinity
     ports:
         - 8080:3000
+    command: bundle install && bundle exec rake engine_cart:server
+
