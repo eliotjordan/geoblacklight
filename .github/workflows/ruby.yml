@@ -48,7 +48,7 @@ jobs:
     - name: Setup Yarn
       run: exec "yarnpkg"
     - name: Build
-      run: BRANCH=${{ git.brach }} rails new gbl-app -m template.rb
+      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new gbl-app -m template.rb
     - name: Cleanup
       run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock
     - name: Zip artifacts
