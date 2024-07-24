@@ -1,4 +1,4 @@
-cp -R /project/workspace /project/gbl-app
+cp -R /project/workspace/. /project/gbl-app
 chown -R vscode:vscode /project/gbl-app
 cd /project/gbl-app
 git config --global --add safe.directory /project/gbl-app
