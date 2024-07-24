@@ -13,4 +13,6 @@ RUN apt-get update && apt-get install nsolid openjdk-11-jre-headless -y
 
 COPY init.sh /init.sh
 
-WORKDIR /project/workspace
+WORKDIR /project/geoblacklight
+EXPOSE 3000
+CMD sh -c "/init.sh"
