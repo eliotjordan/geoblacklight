@@ -116,7 +116,7 @@ jobs:
     strategy:
       matrix:
         ruby_version: ['3.3']
-        rails_version: [7.1.3]
+        rails_version: ['7.1.3.4']
 
     name: test ruby ${{ matrix.ruby_version }} / rails ${{ matrix.rails_version }}
     steps:
