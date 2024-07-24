@@ -52,13 +52,13 @@ jobs:
     - name: Cleanup
       run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock
     - name: Zip artifacts
+      run: zip -r gbl.zip gbl-app
     - name: Upload coverage artifacts
       uses: actions/upload-artifact@v2
       if: always()
       with:
         name: build
-        path: gbl-app.zip
-
+        path: gbl.zip
   test:
     runs-on: ubuntu-latest
     strategy:
