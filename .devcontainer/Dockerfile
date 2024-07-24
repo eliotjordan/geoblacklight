@@ -8,22 +8,9 @@ RUN su vscode -c "/usr/local/rvm/bin/rvm fix-permissions"
 # The value is a comma-separated list of allowed domains 
 ENV RAILS_DEVELOPMENT_HOSTS=".githubpreview.dev,.preview.app.github.dev,.app.github.dev,.csb.app"
 
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#  && apt-get -y install --no-install-recommends nvm
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash
 RUN apt-get update && apt-get install nsolid openjdk-11-jre-headless -y
 
-# RUN useradd rails --create-home --shell /bin/bash 
-# chown -R rails:rails db log storage tmp
-# USER rails:rails
+COPY init.sh /init.sh
 
-# Start the server by default, this can be overwritten at runtime
-#EXPOSE 3000
-#CMD ["./bin/rake", "engine_cart:server"]
-
-# [Optional] Uncomment this line to install additional gems.
-# RUN su vscode -c "gem install <your-gem-names-here>"
-
-# [Optional] Uncomment this line to install global node packages.
-# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
+WORKDIR /project/workspace
