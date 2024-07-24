@@ -1,0 +1,11 @@
+{
+  "setupTasks": [],
+
+  "tasks": {
+    "init": {
+      "name": "init",
+      "command": "sh -c \"/init.sh\"",
+      "runAtStart": true
+    }
+  }
+}
