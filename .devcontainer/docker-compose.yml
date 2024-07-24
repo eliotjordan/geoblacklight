@@ -5,5 +5,5 @@ services:
         dockerfile: Dockerfile
     ports:
         - 8080:3000
-    command: sh -c"/init.sh"
+    command: sh -c "/init.sh"
 
