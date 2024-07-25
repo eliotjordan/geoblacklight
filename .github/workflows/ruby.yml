@@ -50,15 +50,13 @@ jobs:
     - name: Build
       run: BRANCH=${{ github.head_ref || github.ref_name }} rails new gbl-app -m template.rb
     - name: Cleanup
-      run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock
-    - name: Zip artifacts
-      run: zip -r gbl.zip gbl-app
+      run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock gbl-app/tmp
     - name: Upload coverage artifacts
       uses: actions/upload-artifact@v2
       if: always()
       with:
         name: build
-        path: gbl.zip
+        path: gbl-app/
   test:
     runs-on: ubuntu-latest
     strategy:
