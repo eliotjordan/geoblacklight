@@ -11,32 +11,26 @@ WORKDIR /rails
 ENV RAILS_ENV="development"
 
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libvips pkg-config nodejs npm curl libsqlite3-0 libvips
+    apt-get install --no-install-recommends -y build-essential git pkg-config nodejs npm curl libsqlite3-0
 
 RUN npm install --global yarn
 
 # Run and own only the runtime files as a non-root user for security
 RUN useradd rails --create-home --shell /bin/bash
 
-# Copy application code
-RUN chown -R rails:rails /rails
-
-USER rails:rails
+# Install gems and javascript packages
 COPY Gemfile .
 COPY package.json .
-RUN yarn install
-RUN bundle install
-
-USER root:root
-COPY . .
 RUN chown -R rails:rails /rails
-
 USER rails:rails
 RUN yarn install
 RUN bundle install
 
-# Entrypoint prepares the database.
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+# Add application code
+USER root
+COPY . .
+RUN chown -R rails:rails /rails
+USER rails:rails
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

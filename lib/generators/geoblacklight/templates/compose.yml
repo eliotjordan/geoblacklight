@@ -1,6 +1,7 @@
 services:
   app:
-    build: .
+    image: <gbl>
+    # build: . # Use to build from local code
     ports:
       - "3000:3000"
     links:
