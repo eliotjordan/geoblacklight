@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    links:
+      - "solr:solr"
+    environment:
+      SOLR_URL: "http://solr:8983/solr/blacklight-core"
+    depends_on:
+      - solr
+    command: bash -c "until rake geoblacklight:index:seed[:remote]; do :; done && rake db:prepare && rails server -b 0.0.0.0"
+  solr:
+    image: "solr:9"
+    volumes:
+      - "./solr/conf:/blacklight-core/conf"
+    command: "solr-precreate blacklight-core /blacklight-core"
