@@ -6,6 +6,10 @@ on:
       - main
   pull_request:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   linter:
     runs-on: ubuntu-latest
@@ -33,13 +37,14 @@ jobs:
     - name: Run json_schemer against aarkvark fixtures
       run: find spec/fixtures/solr_documents -type f -name "*.json" | xargs json_schemer schema/geoblacklight-schema-aardvark.json
 
-  pr-artifacts:
+  build-demo-app:
+    runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      packages: write
       pull-requests: write
-    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
@@ -56,46 +61,56 @@ jobs:
       run: cp lib/generators/geoblacklight/templates/Dockerfile build-${{ github.event.number }}/.
     - name: Copy compose.yml
       run: cp lib/generators/geoblacklight/templates/compose.yml build-${{ github.event.number }}/.
+    - name: Add docker image to compose.yml
+      run: sed -i 's/<gbl>/ghcr.io\/eliotjordan\/geoblacklight:pr-${{ github.event.number }}/g'  build-${{ github.event.number }}/compose.yml
     - name: Cleanup
       run: rm -rf build-${{ github.event.number }}/node_modules build-${{ github.event.number }}/Gemfile.lock build-${{ github.event.number }}/yarn.lock build-${{ github.event.number }}/tmp
-    - name: Zip files
-      run: zip -r build-${{ github.event.number }}.zip build-${{ github.event.number }}
-    - name: Pull request artifacts
-      uses: gavv/pull-request-artifacts@v2
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
       with:
-        commit: ${{ github.event.pull_request.head.sha }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts-branch: build-repository
-        artifacts: build-${{ github.event.number }}.zip
-
-  build-app:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5
       with:
-        ruby-version: 3.3
-    - name: Install dependencies
-      run: bundle install
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha
       env:
-        RAILS_VERSION: 7.1.3
-    - name: Setup Yarn
-      run: exec "yarnpkg"
-    - name: Build
-      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build-${{ github.event.number }} -m template.rb
-    - name: Copy Dockerfile
-      run: cp lib/generators/geoblacklight/templates/Dockerfile build-${{ github.event.number }}/.
-    - name: Copy compose.yml
-      run: cp lib/generators/geoblacklight/templates/compose.yml build-${{ github.event.number }}/.
-    - name: Cleanup
-      run: rm -rf build-${{ github.event.number }}/node_modules build-${{ github.event.number }}/Gemfile.lock build-${{ github.event.number }}/yarn.lock build-${{ github.event.number }}/tmp
+        DOCKER_METADATA_PR_HEAD_SHA: true
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      id: build-push-step
+      with:
+        context: "${{ github.workspace }}/build-${{ github.event.number }}"
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        file: "${{ github.workspace }}/build-${{ github.event.number }}/Dockerfile"
     - name: Upload coverage artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
+      id: artifact-upload-step
       if: always()
       with:
-        name: build
+        name: build-${{ github.event.number }}
         path: build-${{ github.event.number }}/
+    - name: Add artifact link to PR comments
+      uses: mshick/add-pr-comment@v2
+      with:
+        message: |
+          Demo app download link: ${{ steps.artifact-upload-step.outputs.artifact-url }}
+
+          1. Download demo app and unzip file
+          2. Change into app directory
+              - run `docker compose pull`
+              - run `docker compose up`
+          3. Visit http://localhost:3000
+
+
   test:
     runs-on: ubuntu-latest
     strategy:
