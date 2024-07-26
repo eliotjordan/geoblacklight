@@ -55,7 +55,7 @@ jobs:
     - name: Copy Dockerfile
       run: cp lib/generators/geoblacklight/templates/Dockerfile gbl-app/.
     - name: Copy compose.yml
-      run: cp lib/generators/geoblacklight/templates/compose gbl-app/.
+      run: cp lib/generators/geoblacklight/templates/compose.yml gbl-app/.
     - name: Cleanup
       run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock gbl-app/tmp
     - name: Zip files
@@ -65,6 +65,7 @@ jobs:
       with:
         commit: ${{ github.event.pull_request.head.sha }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts-branch: build-repository
         artifacts: build.zip
 
   build-app:
@@ -86,7 +87,7 @@ jobs:
     - name: Copy Dockerfile
       run: cp lib/generators/geoblacklight/templates/Dockerfile gbl-app/.
     - name: Copy compose.yml
-      run: cp lib/generators/geoblacklight/templates/compose gbl-app/.
+      run: cp lib/generators/geoblacklight/templates/compose.yml gbl-app/.
     - name: Cleanup
       run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock gbl-app/tmp
     - name: Upload coverage artifacts
