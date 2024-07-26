@@ -51,22 +51,22 @@ jobs:
     - name: Setup Yarn
       run: exec "yarnpkg"
     - name: Build
-      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new gbl-app -m template.rb
+      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build-${{ github.event.number }} -m template.rb
     - name: Copy Dockerfile
-      run: cp lib/generators/geoblacklight/templates/Dockerfile gbl-app/.
+      run: cp lib/generators/geoblacklight/templates/Dockerfile build-${{ github.event.number }}/.
     - name: Copy compose.yml
-      run: cp lib/generators/geoblacklight/templates/compose.yml gbl-app/.
+      run: cp lib/generators/geoblacklight/templates/compose.yml build-${{ github.event.number }}/.
     - name: Cleanup
-      run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock gbl-app/tmp
+      run: rm -rf build-${{ github.event.number }}/node_modules build-${{ github.event.number }}/Gemfile.lock build-${{ github.event.number }}/yarn.lock build-${{ github.event.number }}/tmp
     - name: Zip files
-      run: zip -r build.zip gbl-app
+      run: zip -r build-${{ github.event.number }}.zip build-${{ github.event.number }}
     - name: Pull request artifacts
       uses: gavv/pull-request-artifacts@v2
       with:
         commit: ${{ github.event.pull_request.head.sha }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         artifacts-branch: build-repository
-        artifacts: build.zip
+        artifacts: build-${{ github.event.number }}.zip
 
   build-app:
     runs-on: ubuntu-latest
@@ -83,19 +83,19 @@ jobs:
     - name: Setup Yarn
       run: exec "yarnpkg"
     - name: Build
-      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new gbl-app -m template.rb
+      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build-${{ github.event.number }} -m template.rb
     - name: Copy Dockerfile
-      run: cp lib/generators/geoblacklight/templates/Dockerfile gbl-app/.
+      run: cp lib/generators/geoblacklight/templates/Dockerfile build-${{ github.event.number }}/.
     - name: Copy compose.yml
-      run: cp lib/generators/geoblacklight/templates/compose.yml gbl-app/.
+      run: cp lib/generators/geoblacklight/templates/compose.yml build-${{ github.event.number }}/.
     - name: Cleanup
-      run: rm -rf gbl-app/node_modules gbl-app/Gemfile.lock gbl-app/yarn.lock gbl-app/tmp
+      run: rm -rf build-${{ github.event.number }}/node_modules build-${{ github.event.number }}/Gemfile.lock build-${{ github.event.number }}/yarn.lock build-${{ github.event.number }}/tmp
     - name: Upload coverage artifacts
       uses: actions/upload-artifact@v2
       if: always()
       with:
         name: build
-        path: gbl-app/
+        path: build-${{ github.event.number }}/
   test:
     runs-on: ubuntu-latest
     strategy:
