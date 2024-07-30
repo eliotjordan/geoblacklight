@@ -113,7 +113,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         with:
           message: |
-            Demo app download link: ${{ needs.build-app.outputs.output.artifact-url }}
+            Demo app download link: ${{ needs.build-app.outputs.artifact-url }}
 
             1. Download demo app and unzip file
             2. Change into app directory
