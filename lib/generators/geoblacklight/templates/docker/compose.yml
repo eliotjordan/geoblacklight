@@ -1,6 +1,6 @@
 services:
   app:
-    image: <gbl>
+    image: ghcr.io/eliotjordan/geoblacklight:${BRANCH}
     # build: . # Use to build from local code
     ports:
       - "3000:3000"

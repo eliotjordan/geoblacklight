@@ -9,6 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  BRANCH: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   build-app:
@@ -31,16 +32,19 @@ jobs:
         run: exec "yarnpkg"
 
       - name: Build
-        run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build -m template.rb
+        run: BRANCH=${{ env.BRANCH }} rails new build -m template.rb
 
       - name: Copy Dockerfile
-        run: cp lib/generators/geoblacklight/templates/Dockerfile build/.
+        run: cp lib/generators/geoblacklight/templates/docker/Dockerfile build/.
 
       - name: Copy compose.yml
-        run: cp lib/generators/geoblacklight/templates/compose.yml build/.
+        run: cp lib/generators/geoblacklight/templates/docker/compose.yml build/.
 
-      - name: Add docker image to compose.yml
-        run: sed -i 's/<gbl>/ghcr.io\/eliotjordan\/geoblacklight:pr-${{ github.event.number }}/g'  build/compose.yml
+      - name: Copy .env
+        run: cp lib/generators/geoblacklight/templates/docker/.env build/.
+
+      - name: Add branch to .env
+        run: sed -i 's/main/${{ env.BRANCH }}/g'  build/.env
 
       - name: Cleanup
         run: rm -rf build/node_modules build/Gemfile.lock build/yarn.lock build/tmp
@@ -49,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         id: artifact-upload-step
         with:
-          name: app-${{ github.event.number }}
+          name: build-${{ env.BRANCH }}
           path: build/
 
   build-docker:
@@ -60,7 +64,7 @@ jobs:
       - name: Download app build
         uses: actions/download-artifact@v4
         with:
-          name: app-${{ github.event.number }}
+          name: build-${{ env.BRANCH }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
