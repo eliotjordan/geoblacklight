@@ -2,7 +2,8 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.4
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+# FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM ghcr.io/eliotjordan/geoblacklight:main
 
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git pkg-config nodejs npm curl libsqlite3-0
@@ -22,9 +23,9 @@ ENV RAILS_ENV="development" \
 WORKDIR /rails
 
 # Install gems and javascript packages
-ADD Gemfile .
+COPY Gemfile .
 RUN bundle install
-ADD package.json .
+COPY package.json .
 RUN yarn install
 
 # Add application code
