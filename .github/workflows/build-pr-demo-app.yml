@@ -38,7 +38,7 @@ jobs:
         run: cp lib/generators/geoblacklight/templates/docker/compose.yml build/.
 
       - name: Copy .env
-        run: cp lib/generators/geoblacklight/templates/docker/.env build/.
+        run: cp lib/generators/geoblacklight/templates/docker/development.env build/.env
 
       - name: Add branch to .env
         run: sed -i 's/main/${{ env.BRANCH }}/g'  build/.env
