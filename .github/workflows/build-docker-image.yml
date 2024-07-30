@@ -60,6 +60,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-${{ github.event.number }}
+      - name: Display structure of downloaded files
+        run: ls -la
 
       - name: Prepare
         run: |
@@ -101,13 +103,13 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          # context: "${{ github.workspace }}/build-${{ github.event.number }}"
+          context: "${{ github.workspace }}/build-${{ github.event.number }}"
           platforms: ${{ matrix.platform }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # file: "${{ github.workspace }}/build/Dockerfile"
+          file: "${{ github.workspace }}/build-${{ github.event.number }}/Dockerfile"
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
