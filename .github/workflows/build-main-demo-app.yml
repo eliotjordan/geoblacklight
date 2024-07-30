@@ -1,15 +1,17 @@
-name: Build Demo App
+name: Build main branch demo app
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 1 * * SUN"  # every sunday at 1AM
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  BRANCH: ${{ github.head_ref || github.ref_name }}
+  BRANCH: "main"
 
 jobs:
   build-app:
@@ -86,7 +88,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
             type=sha
         env:
           DOCKER_METADATA_PR_HEAD_SHA: true
@@ -103,25 +104,3 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  notify:
-    runs-on: ubuntu-latest
-    needs:
-      - build-app
-      - build-docker
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: write
-    steps:
-      - name: Add artifact link to PR comments
-        uses: mshick/add-pr-comment@v2
-        with:
-          message: |
-            Demo app download link: ${{ needs.build-app.outputs.artifact-url }}
-
-            1. Download demo app and unzip file
-            2. Change into app directory
-                - run `docker compose pull`
-                - run `docker compose up`
-            3. Visit http://localhost:3000
