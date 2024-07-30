@@ -88,6 +88,8 @@ jobs:
       with:
         context: "${{ github.workspace }}/build-${{ github.event.number }}"
         push: true
+        cache-from: type=registry,ref=user/app:buildcache
+        cache-to: type=registry,ref=user/app:buildcache,mode=max
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         file: "${{ github.workspace }}/build-${{ github.event.number }}/Dockerfile"
