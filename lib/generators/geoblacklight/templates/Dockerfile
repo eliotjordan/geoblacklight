@@ -22,9 +22,9 @@ ENV RAILS_ENV="development" \
 WORKDIR /rails
 
 # Install gems and javascript packages
-COPY Gemfile .
+ADD Gemfile .
 RUN bundle install
-COPY package.json .
+ADD package.json .
 RUN yarn install
 
 # Add application code
