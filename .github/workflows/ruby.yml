@@ -65,6 +65,8 @@ jobs:
       run: sed -i 's/<gbl>/ghcr.io\/eliotjordan\/geoblacklight:pr-${{ github.event.number }}/g'  build-${{ github.event.number }}/compose.yml
     - name: Cleanup
       run: rm -rf build-${{ github.event.number }}/node_modules build-${{ github.event.number }}/Gemfile.lock build-${{ github.event.number }}/yarn.lock build-${{ github.event.number }}/tmp
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Log in to the Container registry
