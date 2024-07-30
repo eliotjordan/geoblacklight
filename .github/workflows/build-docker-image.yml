@@ -16,98 +16,107 @@ jobs:
     outputs:
       artifact-url: ${{ steps.artifact-upload-step.outputs.artifact-url }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 3.3
-    - name: Install dependencies
-      run: bundle install
-      env:
-        RAILS_VERSION: 7.1.3
-    - name: Setup Yarn
-      run: exec "yarnpkg"
-    - name: Build
-      run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build -m template.rb
-    - name: Copy Dockerfile
-      run: cp lib/generators/geoblacklight/templates/Dockerfile build/.
-    - name: Copy compose.yml
-      run: cp lib/generators/geoblacklight/templates/compose.yml build/.
-    - name: Add docker image to compose.yml
-      run: sed -i 's/<gbl>/ghcr.io\/eliotjordan\/geoblacklight:pr-${{ github.event.number }}/g'  build/compose.yml
-    - name: Cleanup
-      run: rm -rf build/node_modules build/Gemfile.lock build/yarn.lock build/tmp
-    - name: Upload app
-      uses: actions/upload-artifact@v4
-      id: artifact-upload-step
-      with:
-        name: app-${{ github.event.number }}
-        path: build/
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
 
-build-docker:
-  runs-on: ubuntu-latest
-  needs:
-    - build-app
-  steps:
-    - name: Download app
-      uses: actions/download-artifact@v4
-      with:
-        name: app-${{ github.event.number }}
+      - name: Install dependencies
+        run: bundle install
+        env:
+          RAILS_VERSION: 7.1.3
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      - name: Setup Yarn
+        run: exec "yarnpkg"
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Build
+        run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build -m template.rb
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Copy Dockerfile
+        run: cp lib/generators/geoblacklight/templates/Dockerfile build/.
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha
-      env:
-        DOCKER_METADATA_PR_HEAD_SHA: true
+      - name: Copy compose.yml
+        run: cp lib/generators/geoblacklight/templates/compose.yml build/.
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v6
-      id: build-push-step
-      with:
-        context: "${{ github.workspace }}"
-        file: "${{ github.workspace }}/Dockerfile"
-        push: true
-        platforms: linux/amd64,linux/arm64
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      - name: Add docker image to compose.yml
+        run: sed -i 's/<gbl>/ghcr.io\/eliotjordan\/geoblacklight:pr-${{ github.event.number }}/g'  build/compose.yml
 
-notify:
-  needs:
-    - build-app
-  permissions:
-    contents: read
-    packages: write
-    pull-requests: write
-  steps:
-    - name: Add artifact link to PR comments
-      uses: mshick/add-pr-comment@v2
-      with:
-        message: |
-          Demo app download link: ${{ needs.build-app.outputs.output.artifact-url }}
+      - name: Cleanup
+        run: rm -rf build/node_modules build/Gemfile.lock build/yarn.lock build/tmp
 
-          1. Download demo app and unzip file
-          2. Change into app directory
-              - run `docker compose pull`
-              - run `docker compose up`
-          3. Visit http://localhost:3000
+      - name: Upload app build
+        uses: actions/upload-artifact@v4
+        id: artifact-upload-step
+        with:
+          name: app-${{ github.event.number }}
+          path: build/
+
+  build-docker:
+    runs-on: ubuntu-latest
+    needs:
+      - build-app
+    steps:
+      - name: Download app build
+        uses: actions/download-artifact@v4
+        with:
+          name: app-${{ github.event.number }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+        env:
+          DOCKER_METADATA_PR_HEAD_SHA: true
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        id: build-push-step
+        with:
+          context: "${{ github.workspace }}"
+          file: "${{ github.workspace }}/Dockerfile"
+          push: true
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  notify:
+    runs-on: ubuntu-latest
+    needs:
+      - build-docker
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    steps:
+      - name: Add artifact link to PR comments
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            Demo app download link: ${{ needs.build-app.outputs.output.artifact-url }}
+
+            1. Download demo app and unzip file
+            2. Change into app directory
+                - run `docker compose pull`
+                - run `docker compose up`
+            3. Visit http://localhost:3000
