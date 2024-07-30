@@ -5,8 +5,8 @@ ARG RUBY_VERSION=3.3.4
 # FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
 FROM ghcr.io/eliotjordan/geoblacklight:main
 
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git pkg-config nodejs npm curl libsqlite3-0
+RUN sudo apt-get update -qq && \
+    sudo apt-get install --no-install-recommends -y build-essential git pkg-config nodejs npm curl libsqlite3-0
 
 RUN npm install --global yarn
 
