@@ -105,9 +105,7 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            DOCKER_BUILDKIT=1
-            TARGET=base
+          target: "base"
 
       - name: Build and push branch Docker image
         uses: docker/build-push-action@v6
@@ -121,9 +119,7 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            DOCKER_BUILDKIT=1
-            TARGET=branch
+          target: "branch"
 
   notify:
     runs-on: ubuntu-latest
