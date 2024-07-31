@@ -27,23 +27,13 @@ RUN bundle install
 COPY package.json .
 RUN yarn install
 
+FROM ghcr.io/eliotjordan/geoblacklight:main AS app
+
 # Add application code
 COPY . .
 
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD ["/bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
-
-FROM base AS branch
-
-# Install gems and javascript packages
-COPY Gemfile .
 RUN bundle install
-COPY package.json .
 RUN yarn install
-
-# Add application code
-COPY . .
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

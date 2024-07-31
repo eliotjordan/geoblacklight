@@ -93,6 +93,7 @@ jobs:
         env:
           DOCKER_METADATA_PR_HEAD_SHA: true
 
+        # Build base and app context when updating the main branch.
       - name: Build and push main Docker image
         uses: docker/build-push-action@v6
         if: github.ref_name == 'main'
@@ -105,8 +106,10 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          target: "base"
 
+        # Build only the app context when updating a non-main branch.
+        # Build times are faster because most gems and node packages
+        # are already installed in the base context.
       - name: Build and push branch Docker image
         uses: docker/build-push-action@v6
         if: github.ref_name != 'main'
@@ -119,7 +122,7 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          target: "branch"
+          target: "app"
 
   notify:
     runs-on: ubuntu-latest
