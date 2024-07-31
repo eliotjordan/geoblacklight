@@ -9,12 +9,6 @@ RUN apt-get update -qq && \
 
 RUN npm install --global yarn
 
-# Run and own only the runtime files as a non-root user for security
-RUN useradd rails --create-home --shell /bin/bash
-
-RUN chown -R rails:rails /usr/local/bundle
-
-USER rails:rails
 ENV RAILS_ENV="development" \
     BUNDLE_PATH="/usr/local/bundle"
 
