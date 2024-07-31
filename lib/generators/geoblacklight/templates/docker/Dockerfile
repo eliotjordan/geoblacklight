@@ -34,7 +34,7 @@ COPY . .
 EXPOSE 3000
 CMD ["/bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
 
-FROM ghcr.io/eliotjordan/geoblacklight:main AS branch
+FROM base AS branch
 
 # Install gems and javascript packages
 COPY Gemfile .
