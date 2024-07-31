@@ -27,7 +27,7 @@ RUN bundle install
 COPY package.json .
 RUN yarn install
 
-FROM ghcr.io/eliotjordan/geoblacklight:main AS app
+FROM base AS app
 
 # Add application code
 COPY . .

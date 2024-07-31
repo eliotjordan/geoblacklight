@@ -108,6 +108,7 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          target: "app"
 
         # Build only the app context when updating a non-main branch.
         # Build times are faster because most gems and node packages
@@ -124,6 +125,8 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-contexts: |
+            base=ghcr.io/eliotjordan/geoblacklight:main
           target: "app"
 
   notify:
