@@ -47,7 +47,8 @@ jobs:
         run: cp lib/generators/geoblacklight/templates/docker/development.env build/.env
 
       - name: Add branch to .env
-        run: sed -i 's/main/${{ env.BRANCH }}/g'  build/.env
+        if: github.ref_name != 'main'
+        run: sed -i 's/main/${{ github.event.number }}/g'  build/.env
 
       - name: Cleanup
         run: rm -rf build/node_modules build/Gemfile.lock build/yarn.lock build/tmp
@@ -89,13 +90,15 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+            type=ref,event=pr
             type=sha
         env:
           DOCKER_METADATA_PR_HEAD_SHA: true
 
-      - name: Build and push Docker image
+        # Build base and app context when updating the main branch.
+      - name: Build and push main Docker image
         uses: docker/build-push-action@v6
-        id: build-push-step
+        if: github.ref_name == 'main'
         with:
           context: "${{ github.workspace }}"
           file: "${{ github.workspace }}/Dockerfile"
@@ -106,9 +109,26 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+        # Build only the app context when updating a non-main branch.
+        # Build times are faster because most gems and node packages
+        # are already installed in the base context.
+      - name: Build and push branch Docker image
+        uses: docker/build-push-action@v6
+        if: github.ref_name != 'main'
+        with:
+          context: "${{ github.workspace }}"
+          file: "${{ github.workspace }}/Dockerfile"
+          push: true
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          target: "app"
+
   notify:
     runs-on: ubuntu-latest
-    if: ${{ github.head_ref || github.ref_name }} != "main"
+    if: github.ref_name != 'main'
     needs:
       - build-app
       - build-docker
