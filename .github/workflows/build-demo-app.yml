@@ -47,7 +47,8 @@ jobs:
         run: cp lib/generators/geoblacklight/templates/docker/development.env build/.env
 
       - name: Add branch to .env
-        run: sed -i 's/main/${{ env.BRANCH }}/g'  build/.env
+        if: github.ref_name != 'main'
+        run: sed -i 's/main/${{ github.event.number }}/g'  build/.env
 
       - name: Cleanup
         run: rm -rf build/node_modules build/Gemfile.lock build/yarn.lock build/tmp
@@ -89,6 +90,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+            type=ref,event=pr
             type=sha
         env:
           DOCKER_METADATA_PR_HEAD_SHA: true

@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/eliotjordan/geoblacklight:${BRANCH}
+    image: ghcr.io/eliotjordan/geoblacklight:${DOCKER_IMAGE_TAG}
     # build: . # Use to build from local code
     ports:
       - "3000:3000"
