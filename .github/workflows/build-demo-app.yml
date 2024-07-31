@@ -122,6 +122,8 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Use previously built main branch image to reduce build times
+          # Replaces "FROM base" with "FROM ghcr.io/eliotjordan/geoblacklight:main"
           build-contexts: |
             base=docker-image://ghcr.io/eliotjordan/geoblacklight:main
           target: "app"
