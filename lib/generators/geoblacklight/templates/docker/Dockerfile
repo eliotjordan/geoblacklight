@@ -2,7 +2,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.4
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim AS base
 
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git pkg-config nodejs npm curl libsqlite3-0
@@ -34,7 +34,7 @@ COPY . .
 EXPOSE 3000
 CMD ["/bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
 
-FROM ghcr.io/eliotjordan/geoblacklight:main as branch
+FROM ghcr.io/eliotjordan/geoblacklight:main AS branch
 
 # Install gems and javascript packages
 COPY Gemfile .
