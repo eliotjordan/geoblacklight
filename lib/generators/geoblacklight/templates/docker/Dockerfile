@@ -1,5 +1,6 @@
 # syntax = docker/dockerfile:1
 
+ARG TARGET="base"
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.4
 FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
@@ -29,6 +30,19 @@ RUN yarn install
 
 # Add application code
 COPY . .
+
+FROM ghcr.io/eliotjordan/geoblacklight:main as branch
+
+# Install gems and javascript packages
+COPY Gemfile .
+RUN bundle install
+COPY package.json .
+RUN yarn install
+
+# Add application code
+COPY . .
+
+FROM ${TARGET}
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
