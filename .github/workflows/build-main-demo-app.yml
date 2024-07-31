@@ -1,14 +1,17 @@
-name: Build Demo App
+name: Build main branch demo app
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 1 * * SUN"  # every sunday at 1AM
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  BRANCH: "main"
 
 jobs:
   build-app:
@@ -31,16 +34,19 @@ jobs:
         run: exec "yarnpkg"
 
       - name: Build
-        run: BRANCH=${{ github.head_ref || github.ref_name }} rails new build -m template.rb
+        run: BRANCH=${{ env.BRANCH }} rails new build -m template.rb
 
       - name: Copy Dockerfile
-        run: cp lib/generators/geoblacklight/templates/Dockerfile build/.
+        run: cp lib/generators/geoblacklight/templates/docker/Dockerfile build/.
 
       - name: Copy compose.yml
-        run: cp lib/generators/geoblacklight/templates/compose.yml build/.
+        run: cp lib/generators/geoblacklight/templates/docker/compose.yml build/.
 
-      - name: Add docker image to compose.yml
-        run: sed -i 's/<gbl>/ghcr.io\/eliotjordan\/geoblacklight:pr-${{ github.event.number }}/g'  build/compose.yml
+      - name: Copy .env
+        run: cp lib/generators/geoblacklight/templates/docker/.env build/.
+
+      - name: Add branch to .env
+        run: sed -i 's/main/${{ env.BRANCH }}/g'  build/.env
 
       - name: Cleanup
         run: rm -rf build/node_modules build/Gemfile.lock build/yarn.lock build/tmp
@@ -49,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         id: artifact-upload-step
         with:
-          name: app-${{ github.event.number }}
+          name: build-${{ env.BRANCH }}
           path: build/
 
   build-docker:
@@ -60,7 +66,7 @@ jobs:
       - name: Download app build
         uses: actions/download-artifact@v4
         with:
-          name: app-${{ github.event.number }}
+          name: build-${{ env.BRANCH }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -82,7 +88,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
             type=sha
         env:
           DOCKER_METADATA_PR_HEAD_SHA: true
@@ -99,25 +104,3 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  notify:
-    runs-on: ubuntu-latest
-    needs:
-      - build-app
-      - build-docker
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: write
-    steps:
-      - name: Add artifact link to PR comments
-        uses: mshick/add-pr-comment@v2
-        with:
-          message: |
-            Demo app download link: ${{ needs.build-app.outputs.artifact-url }}
-
-            1. Download demo app and unzip file
-            2. Change into app directory
-                - run `docker compose pull`
-                - run `docker compose up`
-            3. Visit http://localhost:3000
