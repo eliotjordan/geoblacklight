@@ -1,17 +1,18 @@
-name: Build main branch demo app
+name: Build demo app
 
 on:
+  pull_request:
   push:
     branches:
       - main
-  workflow_dispatch:
   schedule:
     - cron: "0 1 * * SUN"  # every sunday at 1AM
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  BRANCH: "main"
+  BRANCH: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   build-app:
@@ -43,7 +44,7 @@ jobs:
         run: cp lib/generators/geoblacklight/templates/docker/compose.yml build/.
 
       - name: Copy .env
-        run: cp lib/generators/geoblacklight/templates/docker/.env build/.
+        run: cp lib/generators/geoblacklight/templates/docker/development.env build/.env
 
       - name: Add branch to .env
         run: sed -i 's/main/${{ env.BRANCH }}/g'  build/.env
@@ -104,3 +105,26 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  notify:
+    runs-on: ubuntu-latest
+    if: ${{ github.head_ref || github.ref_name }} != "main"
+    needs:
+      - build-app
+      - build-docker
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    steps:
+      - name: Add artifact link to PR comments
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            Demo app download link: ${{ needs.build-app.outputs.artifact-url }}
+
+            1. Download demo app and unzip file
+            2. Change into app directory
+                - run `docker compose pull`
+                - run `docker compose up`
+            3. Visit http://localhost:3000
